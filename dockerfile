@@ -34,4 +34,5 @@ RUN git clone https://github.com/codingbutter/architect.git .
 RUN pnpm install
 
 # Expose the port the app runs on
-EXPOSE 
+EXPOSE 3000
+EXPOSE 3001
