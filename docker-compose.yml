@@ -1,0 +1,72 @@
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "${REDDIS_COMMANDER_PORT:-8081}:8081"
+    environment:
+      - REDIS_HOSTS=redis:${REDIS_PORT:-6379}
+    depends_on:
+      - redis
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "{GRAFANA_PORT:-3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - redis
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  vscode:
+    image: codercom/code-server:latest
+    container_name: vscode
+    ports:
+      - "${CODE_PORT:-8080}:8080" # VS Code accessible in the browser
+    volumes:
+      - ./workspace:/app # Mount workspace into the container
+      - vscode-extensions:/home/coder/.vscode-server/extensions
+    environment:
+      PASSWORD: ${VS_PASSWORD":-changeme} # Protect access to VS Code
+    command: ["--bind-addr", "0.0.0.0:8080"]
+
+  monorepo:
+    build:
+      context: ./workspace/
+      dockerfile: Dockerfile
+
+    ports:
+      - "${SERVER_PORT:-8086}:8086" # Backend service
+      - "${FRONTEND_PORT:-8087}:8087" # Frontend service
+      - "#{DOCS_PORT:-8088}:8088" # Documentation service
+    volumes:
+      - ./workspace:/app
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      NODE_ENV: development
+      REDIS_URL: redis://redis:${REDIS_PORT:-6379}
+
+volumes:
+  redis-data:
+  grafana-data:
+  postgres-data:
+  vscode-extensions:
