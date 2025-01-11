@@ -41,7 +41,7 @@ services:
     ports:
       - "${CODE_PORT:-8080}:8080" # VS Code accessible in the browser
     volumes:
-      - ./workspace:/app # Mount workspace into the container
+      - ./architect:/app # Mount architect into the container
       - vscode-extensions:/home/coder/.vscode-server/extensions
     environment:
       PASSWORD: ${VS_PASSWORD":-changeme} # Protect access to VS Code
@@ -49,7 +49,7 @@ services:
 
   monorepo:
     build:
-      context: ./workspace/
+      context: ./architect/
       dockerfile: Dockerfile
 
     ports:
@@ -57,7 +57,7 @@ services:
       - "${FRONTEND_PORT:-8087}:8087" # Frontend service
       - "#{DOCS_PORT:-8088}:8088" # Documentation service
     volumes:
-      - ./workspace:/app
+      - ./architect:/app
     depends_on:
       - redis
       - postgres
